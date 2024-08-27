@@ -112,8 +112,8 @@ for dist in [Exponential, Gamma, InverseGamma]
 
     @constraints function nn_constraints()
         parameters = ProjectionParameters(
-            strategy=ExponentialFamilyProjection.ControlVariateStrategy(nsamples=5),
-            niterations=5
+            strategy=ExponentialFamilyProjection.ControlVariateStrategy(nsamples=30),
+            niterations=100
         )
         q(ε)::ProjectedTo(dist; parameters=parameters, kwargs=(record=record,))
     end

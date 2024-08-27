@@ -114,7 +114,7 @@ for kernel in [RBF(), Matern(1), Matern(2.5)]:
 
     optimizer.maximize(
         init_points=2,
-        n_iter=2,
+        n_iter=1000,
     )
     losses[str(kernel)] = copy.deepcopy(loss_values)
     params[str(kernel)] = float(optimizer.max['params']['learning_rate'])
@@ -129,7 +129,7 @@ loss_values = []
 best = fmin(fn=lambda x: -run_model(x, exp=False),
             space=hp.lognormal('x', -5, 3.0),
             algo=tpe.suggest, 
-            max_evals=2)
+            max_evals=3000)
 
 losses['TPE'] = copy.deepcopy(loss_values)
 params['TPE'] = best["x"]

@@ -131,5 +131,5 @@ def run_ensemble(lrs):
         test_accuracy /= len(test_dataloader)
     return test_accuracy
 
-#for parameters in lrs[0]:
-#   print(run_ensemble(parameters))
+for parameters in lrs[0]:
+   print(run_ensemble(parameters))
