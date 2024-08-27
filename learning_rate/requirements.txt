@@ -1,0 +1,6 @@
+torch
+hyperopt
+scikit-learn
+tqdm
+bayesian-optimization
+torchvision
