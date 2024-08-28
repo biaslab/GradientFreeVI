@@ -12,6 +12,7 @@ using RecursiveArrayTools
 using JSON
 using Plots
 using Random
+using RxInfer.ReactiveMP
 pgfplotsx()
 Random.seed!(123)
 
@@ -50,7 +51,7 @@ function train_nn(model, ε, n_iter, train_data, val_data, pl_min_dist=0.01)
     return model
 end
 
-function BayesBase.logpdf(fused_neural_net::NNFused, y::AbstractMatrix{<:Real})
+function BayesBase.logpdf(fused_neural_net::NNFused, ε, y::AbstractMatrix{<:Real})
     model = Chain(
         Dense(784, 256, relu),
         Dropout(0.45),
@@ -69,6 +70,8 @@ function BayesBase.logpdf(fused_neural_net::NNFused, y::AbstractMatrix{<:Real})
 
     return sumlpdf
 end;
+
+BayesBase.logpdf(fused_neural_net::NNFused, y::AbstractMatrix{<:Real}) = BayesBase.logpdf(fused_neural_net, fused_neural_net.ε, y)
 
 slice_size = 3000
 # Load training data (images, labels)
@@ -142,6 +145,12 @@ for dist in [Exponential, Gamma, InverseGamma]
     distributions = convert.(dist, distributions)
     data[dist] = [distributions, record[2].recorded_values]
 end
+
+dist = NNFused(1.0f-3, Flux.flatten(x_cutted));
+y = Flux.onehotbatch(y_cutted, 0:9);
+culp = ContinuousUnivariateLogPdf(UnspecifiedDomain(), (e) -> logpdf(dist, e, y))
+right = Gamma(1.0, 1 / 300.0)
+
 open("rxinfer_results.json", "w") do f
     JSON.print(f, data)
 end
@@ -149,14 +158,22 @@ end
 moving_average(vs, n) = [sum(@view vs[i:(i+n-1)]) / n for i in 1:(length(vs)-(n-1))]
 minimum_so_far(vs) = [minimum(@view vs[1:i]) for i in 1:length(vs)]
 stopping_threshold = 0.05
-
+indices = []
 for dist in [Exponential, Gamma, InverseGamma]
     index = findfirst(x -> abs(x) < stopping_threshold, diff(data[dist][2]))
     if isnothing(index)
         index = length(data[dist][2])
+        push!(indices, index)
     end
     resulting_lrs[dist] = data[dist][1][index]
 end
+@show indices
+m, v = ReactiveMP.approximate_meancov(ghcubature(30 * minimum(indices)), x -> pdf(culp, x), right)
+@show m, v  # This will still print to the console
+shape = m^2 / v
+scale = v / m
+
+resulting_lrs[ghcubature] = Gamma(shape, scale)
 
 open("rxinfer_results_lrs.json", "w") do f
     JSON.print(f, [[rand(resulting_lr, 50) for (_, resulting_lr) in resulting_lrs], Dict(name => mean(resulting_lr) for (name, resulting_lr) in resulting_lrs)])

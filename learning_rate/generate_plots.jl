@@ -6,6 +6,8 @@ using JSON
 
 pgfplotsx()
 
+minimum_so_far(vs) = [minimum(@view vs[1:i]) for i in 1:length(vs)]
+
 rxinfer_data = JSON.parsefile("rxinfer_results.json")
 
 
