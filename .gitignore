@@ -4,3 +4,6 @@ learning_rate/*.json
 
 .DS_Store
 .gitattributes
+
+sir_model/Manifest.toml
+
