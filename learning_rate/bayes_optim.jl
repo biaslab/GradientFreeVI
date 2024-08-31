@@ -157,14 +157,14 @@ end
 
 moving_average(vs, n) = [sum(@view vs[i:(i+n-1)]) / n for i in 1:(length(vs)-(n-1))]
 minimum_so_far(vs) = [minimum(@view vs[1:i]) for i in 1:length(vs)]
-stopping_threshold = 0.05
+stopping_threshold = 0.029
 indices = []
 for dist in [Exponential, Gamma, InverseGamma]
     index = findfirst(x -> abs(x) < stopping_threshold, diff(data[dist][2]))
     if isnothing(index)
         index = length(data[dist][2])
-        push!(indices, index)
     end
+    push!(indices, index)
     resulting_lrs[dist] = data[dist][1][index]
 end
 @show indices
