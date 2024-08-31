@@ -1,6 +1,7 @@
 julia -e 'using Pkg; Pkg.activate("."); Pkg.instantiate()'
 pip install -r requirements.txt
 julia --project=. bayes_optim.jl
+julia --project=. turing_lss.jl
 python train_model.py
 julia --project=. generate_plots.jl
 python train_rxinfer_lrs.py
