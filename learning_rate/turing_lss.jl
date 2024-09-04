@@ -12,6 +12,7 @@ using SliceSampling
 using Distributions
 using Bijectors
 using Random
+using JSON
 
 Random.seed!(123)
 
@@ -102,12 +103,12 @@ end
 
 sampler = externalsampler(LatentSlice(10))
 caller = TrainNNCaller(0)
-result = sample(bayes_optim(Flux.onehotbatch(y_cutted, 0:9), Flux.flatten(x_cutted), caller), sampler, 50)
+result = sample(bayes_optim(Flux.onehotbatch(y_cutted, 0:9), Flux.flatten(x_cutted), caller), sampler, 5)
 
 
 data = JSON.parsefile("rxinfer_results_lrs.json")
 
-push!(data[1], result[:ε].data)
+push!(data[1], vec(result[:ε].data))
 data[2]["Turing"] = mean(result[:ε].data)
 
 open("rxinfer_results_lrs.json", "w") do f

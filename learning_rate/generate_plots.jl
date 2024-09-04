@@ -10,7 +10,7 @@ minimum_so_far(vs) = [minimum(@view vs[1:i]) for i in 1:length(vs)]
 
 rxinfer_data = JSON.parsefile("rxinfer_results.json")
 
-stopping_threshold = 0.05
+stopping_threshold = 0.029
 
 index = [findfirst(x -> abs(x) < stopping_threshold, diff(rxinfer_data[dist][2])) for dist in keys(rxinfer_data)]
 index = [isnothing(i) ? length(rxinfer_data["Exponential"][2]) : i for i in index]
