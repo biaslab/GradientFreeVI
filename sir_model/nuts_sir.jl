@@ -10,6 +10,7 @@ using Random
 using ProgressMeter
 using DataFrames
 using StatsPlots
+using StableRNGs
 using BenchmarkTools
 using JSON
 
@@ -27,13 +28,11 @@ results["RxInfer10"] = []
 results["RxInfer100"] = []
 results["RxInfer1000"] = []
 
-for _ in 1:10
-    β = rand()
-    i = 1
-    while i > β
-        i = rand()
-    end
-    @show i, β
+rng = StableRNG(42)
+
+for _ in 1:2
+    β = rand(rng)/10
+    i = rand(rng)/100
     nuts_10 = run_ode_experiment(i, β, NUTS(0.65), 10)
     nuts_100 = run_ode_experiment(i, β, NUTS(0.65), 100)
     nuts_1000 = run_ode_experiment(i, β, NUTS(0.65), 1000)
