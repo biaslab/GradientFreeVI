@@ -1,6 +1,7 @@
 using RxInfer, Random, OrdinaryDiffEq, ExponentialFamilyProjection, Optimisers, StableRNGs, StatsFuns, Plots, StaticArrays
 using ProgressMeter
 import BayesBase
+using Manopt
 
 include("bayes_sir_turing_spec.jl")
 
@@ -59,15 +60,15 @@ end
 function BayesBase.logpdf(ode::ODEFused, y::Vector)
     sol_X = sir_ode_solve(ode.problem, ode.l, ode.i₀, ode.β)
     # `sum` over individual entries of the result of the `ODE` solver
-    sumlpdf = sum(zip(sol_X, y)) do (x_i, y_i)
-        return logpdf(Poisson(abs(x_i)), y_i)
+    ε = 1e-5 # Small constant to ensure positivity
+    meanlpdf = mean(zip(sol_X, y)) do (x_i, y_i)
+        λ = max(abs(x_i), ε)
+        clamp(logpdf(Poisson(λ), y_i)+logpdf(Normal(y_i, 20), λ), -100, Inf)
     end
-    # `clamp` to avoid infinities in the beginning, where 
-    # priors are completelly off
-    return clamp(sumlpdf, -100000, Inf)
+    return meanlpdf
 end
 
-function BayesBase.insupport(ode::ODEFused, y::Vector)
+function BayesBase.insupport(::ODEFused, ::Vector)
     return true
 end
 
@@ -100,7 +101,8 @@ end
 @constraints function sir_constraints(nsamples, niterations)
     parameters = ProjectionParameters(
         strategy=ExponentialFamilyProjection.ControlVariateStrategy(nsamples=nsamples),
-        niterations=niterations
+        niterations=niterations,
+        # stepsize = ConstantStepsize(0.5)
     )
 
     # In principle different parameters can be used for different states
@@ -111,7 +113,7 @@ end
     q(i₀, β) = MeanField()
 end
 
-function run_experiment(i₀_true, β_true, constraints, seed)
+function run_experiment(i₀_true, β_true, constraints, seed, niter)
 
     l = 40
     solver = SirOdeSolver(0)
@@ -138,7 +140,7 @@ function run_experiment(i₀_true, β_true, constraints, seed)
         data=(y=Y,),
         constraints=constraints,
         initialization=sir_initialization(),
-        iterations=2,
+        iterations=niter,
         showprogress=true,
         # free_energy = true,
         # free_energy_diagnostics=RxInfer.ObjectiveDiagnosticCheckInfs(),
@@ -153,12 +155,14 @@ function run_experiment(i₀_true, β_true, constraints, seed)
     post_i = result.posteriors[:i₀][end]
     post_b = result.posteriors[:β][end]
 
+    # @show post_i, post_b
+
     return result, solver.counter, in_credible_interval(cdf(post_i, i₀_true)), in_credible_interval(cdf(post_b, β_true)), (mean(post_i) - i₀_true)^2, (mean(post_b) - β_true)^2
 end
 
-function run_experiments(i₀_true, β_true, constraints)
+function run_experiments(i₀_true, β_true, constraints, niter)
     Random.seed!(1234)
-    nsims = 100
+    nsims = 10
     seeds = map(abs, rand(Int, nsims))
 
 
@@ -170,7 +174,7 @@ function run_experiments(i₀_true, β_true, constraints)
 
 
     @showprogress for i in 1:nsims
-        _, counter, crd_i, crd_b, m_i, m_b = run_experiment(i₀_true, β_true, constraints, seeds[i])
+        _, counter, crd_i, crd_b, m_i, m_b = run_experiment(i₀_true, β_true, constraints, seeds[i], niter)
         i₀_coverage[i] = crd_i
         β_coverage[i] = crd_b
         ncalls[i] = counter
@@ -178,6 +182,6 @@ function run_experiments(i₀_true, β_true, constraints)
         β_mse[i] = m_b
     end
 
-    return mean(i₀_coverage), mean(β_coverage), mean(ncalls), mean(i₀_mse), mean(β_mse)
+    return mean(β_coverage), mean(i₀_coverage), mean(β_mse), mean(i₀_mse), mean(ncalls)
 end
 

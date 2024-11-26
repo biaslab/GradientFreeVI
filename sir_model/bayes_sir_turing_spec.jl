@@ -111,5 +111,5 @@ function run_ode_experiment(i₀_true, β_true, sampler, nsamples)
     in_cred_interval_i0 = map(in_credible_interval, i₀_coverage)
     in_cred_interval_β = map(in_credible_interval, β_coverage)
 
-    return mean(in_cred_interval_i0), mean(in_cred_interval_β), mean(number_of_odes_solver), mean(i₀_mse), mean(β_mse)
+    return mean(in_cred_interval_β), mean(in_cred_interval_i0), mean(β_mse), mean(i₀_mse), mean(number_of_odes_solver)
 end 
