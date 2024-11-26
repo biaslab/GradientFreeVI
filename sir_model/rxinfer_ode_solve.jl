@@ -63,7 +63,7 @@ function BayesBase.logpdf(ode::ODEFused, y::Vector)
     ε = 1e-5 # Small constant to ensure positivity
     meanlpdf = mean(zip(sol_X, y)) do (x_i, y_i)
         λ = max(abs(x_i), ε)
-        clamp(logpdf(Poisson(λ), y_i)+logpdf(Normal(y_i, 20), λ), -100, Inf)
+        clamp(logpdf(Poisson(λ), y_i)+logpdf(Normal(y_i, 20), λ), -50, Inf)
     end
     return meanlpdf
 end
