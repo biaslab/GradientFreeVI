@@ -34,21 +34,21 @@ rng = StableRNG(42)
 for _ in 1:10
     β = rand(rng)/10
     i = rand(rng)/100
-    nuts_10 = run_ode_experiment(i, β, NUTS(0.65), 10)
+    nuts_10 = run_ode_experiment(i, β, NUTS(0.65), 15)
     nuts_100 = run_ode_experiment(i, β, NUTS(0.65), 100)
     nuts_1000 = run_ode_experiment(i, β, NUTS(0.65), 1000)
     push!(results["NUTS10"], nuts_10)
     push!(results["NUTS100"], nuts_100)
     push!(results["NUTS1000"], nuts_1000)
 
-    sliced_10 = run_ode_experiment(i, β, externalsampler(LatentSlice(1)), 10)
+    sliced_10 = run_ode_experiment(i, β, externalsampler(LatentSlice(1)), 15)
     sliced_100 = run_ode_experiment(i, β, externalsampler(LatentSlice(1)), 100)
     sliced_1000 = run_ode_experiment(i, β, externalsampler(LatentSlice(1)), 1000)
     push!(results["Sliced10"], sliced_10)
     push!(results["Sliced100"], sliced_100)
     push!(results["Sliced1000"], sliced_1000)
 
-    rxi10 = run_experiments(i, β, sir_constraints(3, 5), 5)
+    rxi10 = run_experiments(i, β, sir_constraints(3, 7), 2)
     rxi100 = run_experiments(i, β, sir_constraints(30, 5), 2)
     rxi1000 = run_experiments(i, β, sir_constraints(49, 49), 4)
     push!(results["RxInfer10"], rxi10)
