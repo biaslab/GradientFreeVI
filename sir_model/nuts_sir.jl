@@ -34,14 +34,14 @@ rng = StableRNG(42)
 for _ in 1:10
     β = rand(rng)/10
     i = rand(rng)/100
-    nuts_10 = run_ode_experiment(i, β, NUTS(0.65), 15)
+    nuts_10 = run_ode_experiment(i, β, NUTS(0.65), 10)
     nuts_100 = run_ode_experiment(i, β, NUTS(0.65), 100)
     nuts_1000 = run_ode_experiment(i, β, NUTS(0.65), 1000)
     push!(results["NUTS10"], nuts_10)
     push!(results["NUTS100"], nuts_100)
     push!(results["NUTS1000"], nuts_1000)
 
-    sliced_10 = run_ode_experiment(i, β, externalsampler(LatentSlice(1)), 15)
+    sliced_10 = run_ode_experiment(i, β, externalsampler(LatentSlice(1)), 10)
     sliced_100 = run_ode_experiment(i, β, externalsampler(LatentSlice(1)), 100)
     sliced_1000 = run_ode_experiment(i, β, externalsampler(LatentSlice(1)), 1000)
     push!(results["Sliced10"], sliced_10)
