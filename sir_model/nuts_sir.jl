@@ -48,7 +48,7 @@ for _ in 1:10
     push!(results["Sliced100"], sliced_100)
     push!(results["Sliced1000"], sliced_1000)
 
-    rxi10 = run_experiments(i, β, sir_constraints(6, 4), 2)
+    rxi10 = run_experiments(i, β, sir_constraints(3, 5), 5)
     rxi100 = run_experiments(i, β, sir_constraints(30, 5), 2)
     rxi1000 = run_experiments(i, β, sir_constraints(49, 49), 4)
     push!(results["RxInfer10"], rxi10)

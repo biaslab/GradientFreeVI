@@ -102,7 +102,6 @@ end
     parameters = ProjectionParameters(
         strategy=ExponentialFamilyProjection.ControlVariateStrategy(nsamples=nsamples),
         niterations=niterations,
-        # stepsize = ConstantStepsize(0.5)
     )
 
     # In principle different parameters can be used for different states
@@ -162,7 +161,7 @@ end
 
 function run_experiments(i₀_true, β_true, constraints, niter)
     Random.seed!(1234)
-    nsims = 10
+    nsims = 100
     seeds = map(abs, rand(Int, nsims))
 
 
